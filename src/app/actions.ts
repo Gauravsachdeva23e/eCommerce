@@ -22,8 +22,8 @@ export async function initiatePayment(amount: number, customerData: any, items: 
 
     const url = "https://sandbox.cashfree.com/pg/orders";
     const headers = {
-        "x-client-id": "TEST108904931339d468f657a4171b5739409801",
-        "x-client-secret": "cfsk_ma_test_82877f02f83fa0f1d7444213b5419ae6_7a4cec1f",
+        "x-client-id": "",
+        "x-client-secret": "",
         "x-api-version": "2023-08-01",
         "Content-Type": "application/json"
     };
