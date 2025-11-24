@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
+import { getActiveCashfreeConfig } from '@/lib/payment';
+
 export async function initiatePayment(amount: number, customerData: any, items: any[]) {
     console.log("Initiating payment for:", amount);
     const orderId = "ORDER_" + Date.now();
@@ -20,29 +22,31 @@ export async function initiatePayment(amount: number, customerData: any, items: 
         paymentStatus: 'pending'
     });
 
-    const url = "https://sandbox.cashfree.com/pg/orders";
-    const headers = {
-        "x-client-id": "",
-        "x-client-secret": "",
-        "x-api-version": "2023-08-01",
-        "Content-Type": "application/json"
-    };
-    const body = {
-        order_amount: amount,
-        order_currency: "INR",
-        order_id: orderId,
-        customer_details: {
-            customer_id: customerData.id || "guest_" + Date.now(),
-            customer_name: customerData.name || "Guest",
-            customer_email: customerData.email || "guest@example.com",
-            customer_phone: customerData.phone || "9999999999"
-        },
-        order_meta: {
-            return_url: "http://localhost:3000/checkout/success?order_id={order_id}"
-        }
-    };
-
     try {
+        const config = await getActiveCashfreeConfig();
+        const url = `${config.baseUrl}/orders`;
+        const headers = {
+            "x-client-id": config.clientId,
+            "x-client-secret": config.clientSecret,
+            "x-api-version": config.apiVersion,
+            "Content-Type": "application/json"
+        };
+
+        const body = {
+            order_amount: amount,
+            order_currency: "INR",
+            order_id: orderId,
+            customer_details: {
+                customer_id: customerData.id || "guest_" + Date.now(),
+                customer_name: customerData.name || "Guest",
+                customer_email: customerData.email || "guest@example.com",
+                customer_phone: customerData.phone || "9999999999"
+            },
+            order_meta: {
+                return_url: `${config.callbackUrl}?order_id={order_id}`
+            }
+        };
+
         console.log("Calling Cashfree API...", url);
         const response = await fetch(url, {
             method: "POST",
