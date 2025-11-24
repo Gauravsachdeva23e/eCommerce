@@ -1,0 +1,34 @@
+[
+    {
+        "id": "CUST-001",
+        "name": "Rajesh Kumar",
+        "email": "rajesh@example.com",
+        "orders": 5,
+        "totalSpent": 65000,
+        "lastOrder": "2025-11-22"
+    },
+    {
+        "id": "CUST-002",
+        "name": "Priya Sharma",
+        "email": "priya@example.com",
+        "orders": 3,
+        "totalSpent": 27000,
+        "lastOrder": "2025-11-22"
+    },
+    {
+        "id": "CUST-003",
+        "name": "Amit Patel",
+        "email": "amit@example.com",
+        "orders": 2,
+        "totalSpent": 30000,
+        "lastOrder": "2025-11-21"
+    },
+    {
+        "id": "CUST-004",
+        "name": "Sneha Gupta",
+        "email": "sneha@example.com",
+        "orders": 1,
+        "totalSpent": 5999,
+        "lastOrder": "2025-11-20"
+    }
+]

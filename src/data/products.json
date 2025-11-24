@@ -1,0 +1,176 @@
+[
+  {
+    "id": "1",
+    "name": "The Royal Chronograph",
+    "price": 100,
+    "description": "A masterpiece of engineering and design. The Royal Chronograph features a precision automatic movement encased in surgical-grade stainless steel.",
+    "image": "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=2080&auto=format&fit=crop",
+    "category": "Men",
+    "features": [
+      "Automatic Movement",
+      "Sapphire Crystal",
+      "Water Resistant 100m"
+    ],
+    "isFeatured": true,
+    "reviews": [
+      {
+        "id": "53qwsinm5",
+        "productId": "1",
+        "userName": "Gaurav",
+        "rating": 2,
+        "comment": "ajsndjandja",
+        "date": "2025-11-22T16:43:25.327Z",
+        "status": "approved",
+        "isPinned": true
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "Elegance Rose Gold",
+    "price": 8999,
+    "description": "Timeless elegance for the modern woman. Rose gold plating meets a minimalist dial for a look that transcends trends.",
+    "image": "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?q=80&w=1927&auto=format&fit=crop",
+    "category": "Women",
+    "features": [
+      "Quartz Movement",
+      "Rose Gold Plated",
+      "Genuine Leather Strap"
+    ],
+    "isFeatured": true
+  },
+  {
+    "id": "3",
+    "name": "The Aviator Series",
+    "price": 15499,
+    "description": "Inspired by classic aviation instruments. Bold, legible, and built to withstand the rigors of flight.",
+    "image": "https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=1999&auto=format&fit=crop",
+    "category": "Men",
+    "features": [
+      "Chronograph Function",
+      "Luminous Hands",
+      "Titanium Case"
+    ],
+    "isNew": true
+  },
+  {
+    "id": "4",
+    "name": "Classic Minimalist",
+    "price": 5999,
+    "description": "Less is more. A clean design that pairs perfectly with both formal wear and casual attire.",
+    "image": "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1988&auto=format&fit=crop",
+    "category": "Unisex",
+    "features": [
+      "Slim Profile",
+      "Interchangeable Straps",
+      "Mineral Glass"
+    ],
+    "reviews": [
+      {
+        "id": "nhs6g4260",
+        "productId": "4",
+        "userName": "sdfsd",
+        "rating": 1,
+        "comment": "sdfsdfsdf",
+        "date": "2025-11-22T17:50:35.496Z",
+        "status": "approved",
+        "isPinned": true,
+        "reply": "Thank you so much"
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "name": "Diver Pro 300",
+    "price": 18999,
+    "description": "Professional grade diving watch. Built for the depths, styled for the surface.",
+    "image": "https://images.unsplash.com/photo-1539874754764-5a96559165b0?q=80&w=2030&auto=format&fit=crop",
+    "category": "Men",
+    "features": [
+      "300m Water Resistance",
+      "Rotating Bezel",
+      "Helium Escape Valve"
+    ],
+    "isFeatured": true
+  },
+  {
+    "id": "6",
+    "name": "Stellar Diamond",
+    "price": 24999,
+    "description": "A touch of luxury. Genuine diamond markers set against a mother-of-pearl dial.",
+    "image": "https://images.unsplash.com/photo-1595923533867-87875cb21562?q=80&w=2070&auto=format&fit=crop",
+    "category": "Women",
+    "features": [
+      "Diamond Markers",
+      "Mother of Pearl Dial",
+      "Swiss Quartz"
+    ],
+    "status": "out_of_stock"
+  },
+  {
+    "name": "Delete Me",
+    "price": 1000,
+    "description": "Test",
+    "image": "",
+    "category": "Men's Watches",
+    "features": [],
+    "isFeatured": false,
+    "isNew": false,
+    "id": "hrvfwbw4q"
+  },
+  {
+    "name": "Omega water",
+    "price": 15520,
+    "description": "this is the test",
+    "image": "/uploads/ChatGPT Image Nov 23, 2025, 01_55_48 PM-1763908517479-614744163.png",
+    "category": "Boy's collection",
+    "features": [],
+    "isFeatured": false,
+    "isNew": false,
+    "id": "b6ot0oetl"
+  },
+  {
+    "name": "Gaurav",
+    "price": 1561,
+    "description": "sdfsdfs",
+    "image": "",
+    "category": "Test 24",
+    "features": [],
+    "isFeatured": false,
+    "isNew": false,
+    "id": "8b7dtv8q9"
+  },
+  {
+    "name": "gaurav",
+    "price": 33344,
+    "description": "dfsgdsfgdf",
+    "image": "",
+    "category": "new category",
+    "features": [],
+    "isFeatured": false,
+    "isNew": false,
+    "id": "khghaup6e"
+  },
+  {
+    "name": "Test 29379",
+    "price": 352345,
+    "description": "This is the test",
+    "image": "/uploads/ChatGPT Image Nov 23, 2025, 01_55_48 PM-1763909976559-743790792.png",
+    "category": "Test 29379",
+    "features": [],
+    "isFeatured": false,
+    "isNew": false,
+    "id": "uh5ls22mq"
+  },
+  {
+    "name": "Saahil sharma",
+    "price": 156984,
+    "description": "New the new person",
+    "image": "/uploads/Generated Image November 07, 2025 - 12_24AM-1763919452704-817444715.png",
+    "category": "Saahil collections",
+    "features": [],
+    "isFeatured": false,
+    "isNew": false,
+    "id": "ogzzwez6b"
+  }
+]

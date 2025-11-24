@@ -1,0 +1,103 @@
+{
+  "heroType": "static",
+  "heroImage": "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=2080&auto=format&fit=crop",
+  "carouselImages": [
+    "/uploads/747-1763887820579-136959495.jpg",
+    ""
+  ],
+  "staticMedia": {
+    "url": "/uploads/SE_PO_Orange_2025__webedit_16x9-1920x1080-1763901490813-165671505.webm",
+    "type": "video"
+  },
+  "carouselSlides": [
+    {
+      "type": "image",
+      "url": "/uploads/747-1763887820579-136959495.jpg"
+    },
+    {
+      "type": "image",
+      "url": ""
+    }
+  ],
+  "heroHeading": "Timeless Elegance, Modern Precision.",
+  "heroSubheading": "Discover our curated collection of premium timepieces. Crafted for those who appreciate the finer moments in life.",
+  "primaryButtonText": "Shop Now",
+  "secondaryButtonText": "Our story",
+  "gradientOverlayColor": "#ffdd0040",
+  "footerShopLinks": [
+    {
+      "label": "Men's Watches",
+      "url": "/shop?category=men"
+    },
+    {
+      "label": "Women's Watches",
+      "url": "/shop?category=women"
+    },
+    {
+      "label": "New Arrivals",
+      "url": "/shop?category=new"
+    },
+    {
+      "label": "Best Sellers",
+      "url": "/shop?category=bestsellers"
+    }
+  ],
+  "footerCompanyLinks": [
+    {
+      "label": "About Us",
+      "url": "/about"
+    },
+    {
+      "label": "Contact",
+      "url": "/contact"
+    },
+    {
+      "label": "FAQ",
+      "url": "/faq"
+    },
+    {
+      "label": "Privacy Policy",
+      "url": "/legal"
+    }
+  ],
+  "footerSocialLinks": [
+    {
+      "platform": "facebook",
+      "url": "#"
+    },
+    {
+      "platform": "instagram",
+      "url": "https://www.instagram.com/gauravsachdeva22/"
+    },
+    {
+      "platform": "twitter",
+      "url": "#"
+    }
+  ],
+  "footerAddress": "123 Watch Street\nNew Delhi, India 110001",
+  "footerPhone": "+91 568497515618",
+  "footerEmail": "gauravsachdevasfnunu34ifn@gmail.com",
+  "categories": [
+    {
+      "id": "1",
+      "name": "Men's Watches",
+      "slug": "men",
+      "image": "https://images.unsplash.com/photo-1619134778706-7015533a6150?q=80&w=2070&auto=format&fit=crop",
+      "showOnHome": true
+    },
+    {
+      "id": "2",
+      "name": "Women's Watches",
+      "slug": "women",
+      "image": "https://images.unsplash.com/photo-1590736969955-71cc94801759?q=80&w=2027&auto=format&fit=crop",
+      "showOnHome": true
+    },
+    {
+      "id": "3",
+      "name": "New Arrivals",
+      "slug": "new",
+      "image": "https://images.unsplash.com/photo-1495856458515-0637185db551?q=80&w=2070&auto=format&fit=crop",
+      "showOnHome": true
+    }
+  ]
+}
