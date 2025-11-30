@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CartProvider } from "@/context/CartContext";
+import { Providers } from "@/components/providers/Providers";
 
 import { getSettings } from "@/lib/db";
 
@@ -36,9 +37,11 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <CartProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer settings={settings} />
+          <Providers>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer settings={settings} />
+          </Providers>
         </CartProvider>
       </body>
     </html>

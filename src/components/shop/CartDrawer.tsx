@@ -20,41 +20,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     const [isCheckingOut, setIsCheckingOut] = useState(false)
     const router = useRouter()
 
-    const handleCheckout = async () => {
-        setIsCheckingOut(true)
-        try {
-            const customerData = {
-                name: "Guest User",
-                email: "guest@example.com",
-                phone: "9999999999"
-            }
-
-            const result = await initiatePayment(totalPrice, customerData, items)
-
-            if (result.success && result.payment_session_id) {
-                const cashfree = await load({
-                    mode: "sandbox"
-                })
-
-                await cashfree.checkout({
-                    paymentSessionId: result.payment_session_id,
-                    returnUrl: `http://localhost:3000/checkout/success?order_id=${result.order_id}`
-                })
-
-                // Note: The user will be redirected, so we don't need to clear cart here immediately
-                // But for better UX if they come back or if it opens in new tab (it doesn't usually),
-                // we might want to handle cart clearing on success page.
-                // For now, we leave the cart as is until success.
-                onClose()
-            } else {
-                alert("Failed to initiate payment: " + result.error)
-            }
-        } catch (error) {
-            console.error("Checkout error:", error)
-            alert("An error occurred during checkout.")
-        } finally {
-            setIsCheckingOut(false)
-        }
+    const handleCheckout = () => {
+        onClose()
+        router.push('/checkout')
     }
 
     return (
@@ -149,7 +117,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <div className="border-t p-4">
                             <div className="mb-4 flex items-center justify-between text-lg font-semibold">
                                 <span>Total</span>
-                                <span>₹{totalPrice.toLocaleString()}</span>
+                                <span>₹{totalPrice.toLocaleString('en-IN')}</span>
                             </div>
                             <Button
                                 className="w-full"

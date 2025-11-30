@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  password  String
+  role      String   @default("USER") // USER, ADMIN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  addresses Address[]
+  orders    Order[]
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  houseNumber String?
+  locality    String
+  landmark    String?
+  city        String
+  state       String
+  pincode     String
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  status          String           @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  total           Float
+  subTotal        Float
+  tax             Float
+  shippingCharges Float
+  discount        Float
+  paymentStatus   String           @default("PENDING") // PENDING, PAID, FAILED
+  paymentMethod   String           @default("COD") // COD, PREPAID
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  items           OrderItem[]
+  shiprocketOrder ShiprocketOrder?
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  name      String
+  price     Float
+  quantity  Int
+  image     String?
+}
+
+model ShiprocketOrder {
+  id               String   @id @default(cuid())
+  orderId          String   @unique
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shiprocketOrderId Int
+  shipmentId       Int
+  awbCode          String?
+  courierName      String?
+  status           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}

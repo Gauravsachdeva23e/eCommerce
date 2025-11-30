@@ -37,7 +37,7 @@ export default async function AdminCustomersPage() {
                                 <TableCell className="font-medium">{customer.name}</TableCell>
                                 <TableCell>{customer.email}</TableCell>
                                 <TableCell>{customer.orders}</TableCell>
-                                <TableCell>₹{customer.totalSpent.toLocaleString()}</TableCell>
+                                <TableCell>₹{customer.totalSpent.toLocaleString('en-IN')}</TableCell>
                                 <TableCell className="text-right">{customer.lastOrder}</TableCell>
                             </TableRow>
                         ))}

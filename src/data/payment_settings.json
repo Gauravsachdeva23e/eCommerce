@@ -1,0 +1,10 @@
+{
+  "mode": "sandbox",
+  "sandbox_client_id": "BLOaZibHoudsZDqA6kM/F230WeF8QwXnCVEFLxC/ojS1TtuuXZOp0R9E/dm9nmsS7oLzYgPUQ+EnhBuT5hsKIWdH9p20VfHzdMDE+3cBBS2yoQOgnRa35Jnv/1qSQXC5J9TVWPRH15u4MB+Ikpy1+OCncM3XOb03w57Qo2TUy51la1GBG/OvqA==",
+  "sandbox_client_secret": "wwlyjvP7wD5+yzf3U1gBxtw5iw/hmx3mEnCxtwyMIlToAOHcdgKjzF9lvFT5yciuH3txlT2D5JSdPzSTosYaJrXxwZtSr61o4muNweptMN/i3YRL6Xk5Jl/4QN23FTBzl3LPSmTLMJG/cL7IEhh7dRgRYlXJODs3ZMSZx9HhjSkpKka8uwnH5fcSRQ3Z+Q/T2xKF5R+8",
+  "live_client_id": "",
+  "live_client_secret": "",
+  "callback_url": "http://localhost:3000/checkout/success",
+  "webhook_url": "http://localhost:3000/api/webhook/cashfree",
+  "updated_at": "2025-11-28T15:39:06.194Z"
+}

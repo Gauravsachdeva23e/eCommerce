@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { updateSettings } from "@/app/actions"
+import { updateSettings, getShiprocketToken, updateShiprocketToken } from "@/app/actions"
 import { Settings } from "@/lib/db"
 import { Loader2, Plus, Trash, Save } from "lucide-react"
 import { MediaUpload } from "./MediaUpload"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PaymentSettingsForm } from "./PaymentSettingsForm"
+import { useEffect } from "react"
 
 interface SettingsFormProps {
     initialSettings: Settings
@@ -23,6 +24,18 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false)
     const [settings, setSettings] = useState<Settings>(initialSettings)
+    const [shiprocketToken, setShiprocketToken] = useState("")
+
+    useEffect(() => {
+        getShiprocketToken().then(setShiprocketToken)
+    }, [])
+
+    const handleSaveToken = async () => {
+        setIsLoading(true)
+        await updateShiprocketToken(shiprocketToken)
+        setIsLoading(false)
+        router.refresh()
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -57,14 +70,17 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
         })
     }
 
+    // ... existing code ...
+
     return (
         <div className="space-y-6">
             <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="general">General & Hero</TabsTrigger>
                     <TabsTrigger value="footer">Footer</TabsTrigger>
                     <TabsTrigger value="categories">Categories</TabsTrigger>
                     <TabsTrigger value="payment">Payment</TabsTrigger>
+                    <TabsTrigger value="shipping">Shipping</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="general">
@@ -527,6 +543,36 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
 
                 <TabsContent value="payment">
                     <PaymentSettingsForm />
+                </TabsContent>
+
+                <TabsContent value="shipping">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Shipping Configuration</CardTitle>
+                            <CardDescription>
+                                Manage your Shiprocket integration settings.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="shiprocketToken">Shiprocket Bearer Token</Label>
+                                <Input
+                                    id="shiprocketToken"
+                                    type="password"
+                                    value={shiprocketToken}
+                                    onChange={(e) => setShiprocketToken(e.target.value)}
+                                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                />
+                                <p className="text-sm text-muted-foreground">
+                                    Enter your Shiprocket Bearer Token here. This will be used for all shipping operations.
+                                </p>
+                            </div>
+                            <Button onClick={handleSaveToken} disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Token
+                            </Button>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
             </Tabs>
         </div>

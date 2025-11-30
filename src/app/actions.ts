@@ -5,24 +5,45 @@ import { Product } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-
 import { getActiveCashfreeConfig } from '@/lib/payment';
+import bcrypt from "bcryptjs"
+import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
+import { ShiprocketService } from "@/lib/shiprocket-service"
 
 export async function initiatePayment(amount: number, customerData: any, items: any[]) {
     console.log("Initiating payment for:", amount);
-    const orderId = "ORDER_" + Date.now();
-
-    // Save order to DB first
-    await createOrder({
-        id: orderId,
-        total: amount,
-        customer: customerData,
-        items: items,
-        status: 'Pending',
-        paymentStatus: 'pending'
-    });
 
     try {
+        const session = await auth()
+        if (!session?.user?.id) return { success: false, error: "Not authenticated" }
+
+        // Create Order in DB (Prisma)
+        const order = await prisma.order.create({
+            data: {
+                userId: session.user.id,
+                total: amount,
+                subTotal: amount,
+                tax: 0,
+                shippingCharges: 0,
+                discount: 0,
+                status: "PENDING",
+                paymentStatus: "PENDING",
+                paymentMethod: "PREPAID",
+                items: {
+                    create: items.map((item: any) => ({
+                        productId: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image: item.image
+                    }))
+                }
+            }
+        })
+
+        const orderId = order.id;
+
         const config = await getActiveCashfreeConfig();
         const url = `${config.baseUrl}/orders`;
         const headers = {
@@ -37,8 +58,8 @@ export async function initiatePayment(amount: number, customerData: any, items: 
             order_currency: "INR",
             order_id: orderId,
             customer_details: {
-                customer_id: customerData.id || "guest_" + Date.now(),
-                customer_name: customerData.name || "Guest",
+                customer_id: session.user.id,
+                customer_name: customerData.name || session.user.name || "Guest",
                 customer_email: customerData.email || "guest@example.com",
                 customer_phone: customerData.phone || "9999999999"
             },
@@ -57,14 +78,111 @@ export async function initiatePayment(amount: number, customerData: any, items: 
         console.log("Cashfree API Response:", data);
 
         if (response.ok) {
-            return { success: true, payment_session_id: data.payment_session_id, order_id: data.order_id };
+            return {
+                success: true,
+                payment_session_id: data.payment_session_id,
+                order_id: data.order_id,
+                mode: config.baseUrl.includes("sandbox") ? "sandbox" : "production"
+            };
         } else {
             console.error("Cashfree API Error:", data);
             return { success: false, error: data.message || "API Error" };
         }
     } catch (error: any) {
-        console.error("Fetch Error:", error);
-        return { success: false, error: error.message };
+        console.error("Payment Initiation Error:", error);
+        return { success: false, error: error.message || "Payment Initiation Failed" };
+    }
+}
+
+export async function verifyPayment(orderId: string) {
+    const config = await getActiveCashfreeConfig();
+    const url = `${config.baseUrl}/orders/${orderId}`;
+    const headers = {
+        "x-client-id": config.clientId,
+        "x-client-secret": config.clientSecret,
+        "x-api-version": config.apiVersion
+    };
+
+    try {
+        const response = await fetch(url, { headers });
+        const data = await response.json();
+
+        if (data.order_status === "PAID") {
+            // Update order status in DB
+            await prisma.order.update({
+                where: { id: orderId },
+                data: { status: "PAID", paymentStatus: "PAID" }
+            });
+
+            // Trigger Shiprocket Order Creation
+            const order = await prisma.order.findUnique({
+                where: { id: orderId },
+                include: { items: true, user: true }
+            });
+
+            if (order) {
+                // Fetch user's default or most recent address
+                const address = await prisma.address.findFirst({
+                    where: { userId: order.userId },
+                    orderBy: { updatedAt: 'desc' }
+                });
+
+                if (address) {
+                    const srOrderData = {
+                        order_id: order.id,
+                        order_date: order.createdAt.toISOString(),
+                        pickup_location: process.env.SHIPROCKET_PICKUP_LOCATION_ID || "Primary",
+                        billing_customer_name: order.user.name || "Customer",
+                        billing_last_name: "",
+                        billing_address: address.houseNumber + ", " + address.locality,
+                        billing_city: address.city,
+                        billing_pincode: address.pincode,
+                        billing_state: address.state,
+                        billing_country: "India",
+                        billing_email: "user@example.com", // Placeholder
+                        billing_phone: (order.user as any).phone || "9876543210",
+                        shipping_is_billing: true,
+                        order_items: order.items.map((item: any) => ({
+                            name: item.name,
+                            sku: item.productId,
+                            units: item.quantity,
+                            selling_price: item.price,
+                            discount: 0,
+                            tax: 0,
+                            hsn: 0
+                        })),
+                        payment_method: "Prepaid",
+                        sub_total: order.total,
+                        length: 10, breadth: 10, height: 10, weight: 0.5 // Default dimensions
+                    };
+
+                    try {
+                        const srResponse = await ShiprocketService.createOrder(srOrderData);
+
+                        await prisma.shiprocketOrder.create({
+                            data: {
+                                orderId: order.id,
+                                shiprocketOrderId: srResponse.order_id,
+                                shipmentId: srResponse.shipment_id,
+                                status: srResponse.status,
+                                courierName: srResponse.courier_name,
+                                awbCode: srResponse.awb_code
+                            }
+                        });
+                    } catch (srError) {
+                        console.error("Shiprocket Creation Failed:", srError);
+                        // Don't fail the verification if shipping fails, but log it
+                    }
+                }
+            }
+
+            return { success: true };
+        } else {
+            return { success: false, error: "Payment not verified" };
+        }
+    } catch (error) {
+        console.error("Verification Error:", error);
+        return { success: false, error: "Verification failed" };
     }
 }
 
@@ -120,11 +238,47 @@ export async function fetchMetrics() {
 }
 
 export async function fetchOrders() {
-    return await getOrders();
+    const orders = await prisma.order.findMany({
+        include: {
+            user: true,
+            items: true
+        },
+        orderBy: { createdAt: 'desc' }
+    })
+
+    return orders.map(order => ({
+        id: order.id,
+        customer: order.user ? { name: order.user.name || 'Unknown' } : 'Guest',
+        date: order.createdAt.toISOString().split('T')[0],
+        status: order.status,
+        total: order.total,
+        items: order.items
+    }))
 }
 
 export async function fetchCustomers() {
-    return await getCustomers();
+    const users = await prisma.user.findMany({
+        include: {
+            orders: {
+                orderBy: { createdAt: 'desc' }
+            }
+        },
+        orderBy: { createdAt: 'desc' }
+    })
+
+    return users.map(user => {
+        const totalSpent = user.orders.reduce((acc, order) => acc + order.total, 0)
+        const lastOrder = user.orders[0]?.createdAt.toISOString().split('T')[0] || 'Never'
+
+        return {
+            id: user.id,
+            name: user.name || 'Unknown',
+            email: user.phone, // Using phone as email/identifier for now
+            orders: user.orders.length,
+            totalSpent,
+            lastOrder
+        }
+    })
 }
 
 export async function createOrder(orderData: any) {
@@ -280,22 +434,19 @@ export async function updateSettings(settings: Settings) {
     return { success: true };
 }
 
-export async function uploadMedia(formData: FormData) {
+export async function uploadImage(formData: FormData) {
     const file = formData.get('file') as File;
     if (!file) {
         return { success: false, error: 'No file uploaded' };
     }
 
     // Validation Constants
-    const MAX_SIZE = 50 * 1024 * 1024; // 50MB for videos
-    const ALLOWED_TYPES = [
-        'image/jpeg', 'image/png', 'image/webp',
-        'video/mp4', 'video/webm'
-    ];
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
     // Validate Size
     if (file.size > MAX_SIZE) {
-        return { success: false, error: 'File size exceeds 50MB limit' };
+        return { success: false, error: 'File size exceeds 5MB limit' };
     }
     if (file.size === 0) {
         return { success: false, error: 'File is empty' };
@@ -303,7 +454,7 @@ export async function uploadMedia(formData: FormData) {
 
     // Validate Type
     if (!ALLOWED_TYPES.includes(file.type)) {
-        return { success: false, error: 'Invalid file type. Only JPG, PNG, WEBP, MP4, and WEBM are allowed.' };
+        return { success: false, error: 'Invalid file type. Only JPG, PNG, and WEBP are allowed.' };
     }
 
     const bytes = await file.arrayBuffer();
@@ -321,5 +472,211 @@ export async function uploadMedia(formData: FormData) {
     const filepath = join(uploadDir, filename);
     await writeFile(filepath, buffer);
 
-    return { success: true, url: `/uploads/${filename}`, type: file.type.startsWith('video/') ? 'video' : 'image' };
+    return { success: true, url: `/uploads/${filename}` };
+}
+
+export async function registerUser(formData: FormData) {
+    const name = formData.get("name") as string
+    const phone = formData.get("phone") as string
+    const password = formData.get("password") as string
+
+    if (!name || !phone || !password) {
+        return { success: false, error: "Missing fields" }
+    }
+
+    // Password Validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
+    if (!passwordRegex.test(password)) {
+        return {
+            success: false,
+            error: "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
+        }
+    }
+
+    // Check if user exists
+    console.log("Checking if user exists:", phone)
+    const existingUser = await prisma.user.findUnique({ where: { phone } })
+    if (existingUser) {
+        console.log("User already exists")
+        return { success: false, error: "User already exists" }
+    }
+
+    // Hash password
+    console.log("Hashing password")
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Create user
+    console.log("Creating user")
+    try {
+        await prisma.user.create({
+            data: {
+                name,
+                phone,
+                password: hashedPassword,
+            },
+        })
+        console.log("User created successfully")
+    } catch (e) {
+        console.error("Error creating user:", e)
+        return { success: false, error: "Database error" }
+    }
+
+    return { success: true }
+}
+
+export async function addAddress(formData: FormData) {
+    const session = await auth()
+    if (!session?.user?.id) return { success: false, error: "Not authenticated" }
+
+    const houseNumber = formData.get("houseNumber") as string
+    const locality = formData.get("locality") as string
+    const landmark = formData.get("landmark") as string
+    const city = formData.get("city") as string
+    const state = formData.get("state") as string
+    const pincode = formData.get("pincode") as string
+
+    // Validation
+    if (!houseNumber || !locality || !city || !state || !pincode) {
+        return { success: false, error: "Missing required fields" }
+    }
+    if (pincode.length !== 6 || isNaN(Number(pincode))) {
+        return { success: false, error: "Invalid Pincode" }
+    }
+
+    try {
+        await prisma.address.create({
+            data: {
+                userId: session.user.id,
+                houseNumber,
+                locality,
+                landmark,
+                city,
+                state,
+                pincode,
+            },
+        })
+        revalidatePath("/profile")
+        return { success: true }
+    } catch (error) {
+        console.error("Error adding address:", error)
+        return { success: false, error: "Failed to save address" }
+    }
+}
+
+export async function deleteAddress(addressId: string) {
+    const session = await auth()
+    if (!session?.user?.id) return { success: false, error: "Not authenticated" }
+
+    const address = await prisma.address.findUnique({ where: { id: addressId } })
+    if (!address || address.userId !== session.user.id) {
+        return { success: false, error: "Address not found" }
+    }
+
+    await prisma.address.delete({ where: { id: addressId } })
+    revalidatePath("/profile")
+    return { success: true }
+}
+
+export async function getShiprocketToken() {
+    const setting = await prisma.systemSetting.findUnique({
+        where: { key: 'shiprocket_token' }
+    })
+    return setting?.value || ''
+}
+
+export async function updateShiprocketToken(token: string) {
+    const session = await auth()
+    if (!session?.user) return { success: false, error: "Not authenticated" }
+
+    await prisma.systemSetting.upsert({
+        where: { key: 'shiprocket_token' },
+        update: { value: token },
+        create: { key: 'shiprocket_token', value: token, description: 'Shiprocket Bearer Token' }
+    })
+    revalidatePath("/admin/settings")
+    return { success: true }
+}
+
+export async function placeOrder(orderData: { items: any[], addressId: string, total: number }) {
+    const session = await auth()
+    if (!session?.user?.id) return { success: false, error: "Not authenticated" }
+
+    const { items, addressId, total } = orderData
+
+    // Fetch address
+    const address = await prisma.address.findUnique({ where: { id: addressId } })
+    if (!address) return { success: false, error: "Address not found" }
+
+    // Create Order in DB
+    const order = await prisma.order.create({
+        data: {
+            userId: session.user.id,
+            total,
+            subTotal: total, // Simplified
+            tax: 0,
+            shippingCharges: 0,
+            discount: 0,
+            status: "PENDING",
+            items: {
+                create: items.map((item: any) => ({
+                    productId: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image
+                }))
+            }
+        }
+    })
+
+    // Prepare Shiprocket Data
+    const srOrderData = {
+        order_id: order.id,
+        order_date: order.createdAt.toISOString(),
+        pickup_location: process.env.SHIPROCKET_PICKUP_LOCATION_ID || "Primary",
+        billing_customer_name: session.user.name || "Customer",
+        billing_last_name: "",
+        billing_address: address.houseNumber + ", " + address.locality,
+        billing_city: address.city,
+        billing_pincode: address.pincode,
+        billing_state: address.state,
+        billing_country: "India",
+        billing_email: "user@example.com", // Placeholder
+        billing_phone: (session.user as any).phone || "9876543210",
+        shipping_is_billing: true,
+        order_items: items.map((item: any) => ({
+            name: item.name,
+            sku: item.id,
+            units: item.quantity,
+            selling_price: item.price,
+            discount: 0,
+            tax: 0,
+            hsn: 0
+        })),
+        payment_method: "COD",
+        sub_total: total,
+        length: 10, breadth: 10, height: 10, weight: 0.5 // Default dimensions
+    }
+
+    // Call Shiprocket
+    try {
+        const srResponse = await ShiprocketService.createOrder(srOrderData)
+
+        // Save Shiprocket details
+        await prisma.shiprocketOrder.create({
+            data: {
+                orderId: order.id,
+                shiprocketOrderId: srResponse.order_id,
+                shipmentId: srResponse.shipment_id,
+                status: srResponse.status,
+                courierName: srResponse.courier_name,
+                awbCode: srResponse.awb_code
+            }
+        })
+
+        return { success: true, orderId: order.id }
+    } catch (error) {
+        console.error("Shiprocket Error:", error)
+        return { success: true, orderId: order.id, warning: "Order placed but shipping generation failed" }
+    }
 }

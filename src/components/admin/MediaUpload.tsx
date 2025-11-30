@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, X, FileVideo, Image as ImageIcon, Loader2 } from "lucide-react"
 import Image from "next/image"
-import { uploadMedia } from "@/app/actions"
+import { uploadImage } from "@/app/actions"
 
 interface MediaUploadProps {
     value?: string
@@ -26,9 +26,9 @@ export function MediaUpload({ value, type = 'image', onChange, onRemove }: Media
         formData.append('file', file)
 
         try {
-            const result = await uploadMedia(formData)
+            const result = await uploadImage(formData)
             if (result.success && result.url) {
-                onChange(result.url, result.type as 'image' | 'video')
+                onChange(result.url, 'image')
             } else {
                 console.error("Upload failed:", result.error)
                 alert("Upload failed: " + result.error)

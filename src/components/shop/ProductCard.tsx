@@ -44,7 +44,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="p-5">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{product.category}</p>
-          <p className="font-bold text-primary">₹{product.price.toLocaleString()}</p>
+          <p className="font-bold text-primary">₹{product.price.toLocaleString('en-IN')}</p>
         </div>
         <Link href={`/product/${product.id}`}>
           <h3 className="mb-3 text-lg font-bold leading-tight text-foreground transition-colors group-hover:text-secondary">

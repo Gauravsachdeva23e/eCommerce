@@ -49,7 +49,7 @@ export function ProductDetails({ product, relatedProducts }: ProductDetailsProps
                     </div>
 
                     <div className="text-2xl font-bold text-primary">
-                        ₹{product.price.toLocaleString()}
+                        ₹{product.price.toLocaleString('en-IN')}
                     </div>
 
                     <p className="text-muted-foreground md:text-lg">

@@ -64,7 +64,7 @@ export default async function AdminProductsPage() {
                                 </TableCell>
                                 <TableCell className="font-medium">{product.name}</TableCell>
                                 <TableCell>{product.category}</TableCell>
-                                <TableCell>₹{product.price.toLocaleString()}</TableCell>
+                                <TableCell>₹{product.price.toLocaleString('en-IN')}</TableCell>
                                 <TableCell className="text-right">
                                     <ProductActions product={product} />
                                 </TableCell>

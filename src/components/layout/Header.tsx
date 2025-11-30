@@ -2,14 +2,14 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ShoppingBag, Menu, X, Search } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
+import { ShoppingBag, Menu, X, Search, User, LogOut, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/context/CartContext"
 import { CartDrawer } from "@/components/shop/CartDrawer"
 import { motion, useScroll, useMotionValueEvent } from "framer-motion"
-
-import { usePathname, useRouter } from "next/navigation"
 
 export function Header() {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false)
@@ -19,6 +19,7 @@ export function Header() {
     const { scrollY } = useScroll()
     const pathname = usePathname()
     const router = useRouter()
+    const { status } = useSession()
     const isHome = pathname === "/"
     const isAdmin = pathname?.startsWith("/admin")
 
@@ -78,14 +79,17 @@ export function Header() {
                                         key={item}
                                         href={href}
                                         className={cn(
-                                            "transition-colors hover:text-secondary relative group",
-                                            isActive ? "text-secondary" : (!isTransparent ? "text-foreground" : "text-white/90")
+                                            "transition-colors relative group",
+                                            !isTransparent
+                                                ? (isActive ? "text-primary font-bold" : "text-foreground hover:text-primary")
+                                                : (isActive ? "text-white font-bold" : "text-white/90 hover:text-white")
                                         )}
                                     >
                                         {item}
                                         <span className={cn(
-                                            "absolute -bottom-1 left-0 h-0.5 bg-secondary transition-all group-hover:w-full",
-                                            isActive ? "w-full" : "w-0"
+                                            "absolute -bottom-1 left-0 h-0.5 transition-all group-hover:w-full",
+                                            isActive ? "w-full" : "w-0",
+                                            !isTransparent ? "bg-primary" : "bg-white"
                                         )} />
                                     </Link>
                                 )
@@ -131,6 +135,33 @@ export function Header() {
                                     </span>
                                 )}
                             </Button>
+
+                            {/* Auth Buttons */}
+                            {status === "authenticated" ? (
+                                <>
+                                    <Link href="/profile">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            aria-label="Profile"
+                                            className={cn(!isTransparent ? "text-foreground" : "text-white hover:bg-white/10")}
+                                        >
+                                            <User className="h-5 w-5" />
+                                        </Button>
+                                    </Link>
+                                </>
+                            ) : status === "unauthenticated" ? (
+                                <Link href="/login">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className={cn(!isTransparent ? "text-foreground" : "text-white hover:bg-white/10")}
+                                    >
+                                        <LogIn className="h-4 w-4 mr-2" />
+                                        Login
+                                    </Button>
+                                </Link>
+                            ) : null}
 
                             {/* Mobile Menu Toggle */}
                             <Button

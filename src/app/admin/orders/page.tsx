@@ -42,7 +42,7 @@ export default async function AdminOrdersPage() {
                                 <TableCell>
                                     <OrderStatus orderId={order.id} status={order.status} />
                                 </TableCell>
-                                <TableCell className="text-right">₹{order.total.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">₹{order.total.toLocaleString('en-IN')}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
